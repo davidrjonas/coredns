@@ -139,6 +139,41 @@ proxy . 8.8.8.8:53 {
 		{
 			`
 proxy . 8.8.8.8:53 {
+	protocol dns local_addr 127.0.0.1 force_tcp
+}`,
+			false,
+		},
+		{
+			`
+proxy . 8.8.8.8:53 {
+	protocol dns local_addr 127.0.0.2 force_tcp
+}`,
+			false,
+		},
+		{
+			`
+proxy . 8.8.8.8:53 {
+	protocol dns force_tcp local_addr 127.0.0.3
+}`,
+			false,
+		},
+		{
+			`
+proxy . 8.8.8.8:53 {
+	protocol dns local_addr not-an-ip
+}`,
+			true,
+		},
+		{
+			`
+proxy . 8.8.8.8:53 {
+	protocol dns local_addr
+}`,
+			true,
+		},
+		{
+			`
+proxy . 8.8.8.8:53 {
 	protocol grpc a b c d
 }`,
 			true,

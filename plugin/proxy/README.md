@@ -31,7 +31,7 @@ proxy FROM TO... {
     health_check PATH:PORT [DURATION]
     except IGNORED_NAMES...
     spray
-    protocol [dns [force_tcp]|https_google [bootstrap ADDRESS...]|grpc [insecure|CACERT|KEY CERT|KEY CERT CACERT]]
+    protocol [dns [force_tcp|local_addr ADDRESS]|https_google [bootstrap ADDRESS...]|grpc [insecure|CACERT|KEY CERT|KEY CERT CACERT]]
 }
 ~~~
 
@@ -76,7 +76,8 @@ payload over HTTPS). Note that with `https_google` the entire transport is encry
 
 `dns`
 :   uses the standard DNS exchange. You can pass `force_tcp` to make sure that the proxied connection is performed
-    over TCP, regardless of the inbound request's protocol.
+    over TCP, regardless of the inbound request's protocol. You may bind upstream connections to a particular interface
+    with `local_addr ADDRESS`. If **ADDRESS** isn't assigned to a local interface you may see immediate SERVFAIL responses.
 
 `grpc`
 :   extra options are used to control how the TLS connection is made to the gRPC server.

@@ -155,12 +155,30 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 		switch encArgs[0] {
 		case "dns":
 			if len(encArgs) > 1 {
-				if encArgs[1] == "force_tcp" {
-					opts := Options{ForceTCP: true}
-					u.ex = newDNSExWithOption(opts)
-				} else {
-					return fmt.Errorf("only force_tcp allowed as parameter to dns")
+				opts := Options{}
+				isLocalAddrValue := false
+				for _, arg := range encArgs[1:] {
+					if isLocalAddrValue {
+						opts.LocalAddr = net.ParseIP(arg)
+						if opts.LocalAddr == nil {
+							return fmt.Errorf("local_addr does not appear to be an IP address")
+						}
+						isLocalAddrValue = false
+						continue
+					}
+
+					if arg == "force_tcp" {
+						opts.ForceTCP = true
+					} else if arg == "local_addr" {
+						isLocalAddrValue = true
+					} else {
+						return fmt.Errorf("unknown option to dns upstream")
+					}
 				}
+				if isLocalAddrValue {
+					return fmt.Errorf("expected IP address after local_addr")
+				}
+				u.ex = newDNSExWithOption(opts)
 			} else {
 				u.ex = newDNSEx()
 			}

@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -17,7 +18,8 @@ type dnsEx struct {
 
 // Options define the options understood by dns.Exchange.
 type Options struct {
-	ForceTCP bool // If true use TCP for upstream no matter what
+	ForceTCP  bool // If true use TCP for upstream no matter what
+	LocalAddr net.IP
 }
 
 func newDNSEx() *dnsEx {
@@ -46,7 +48,17 @@ func (d *dnsEx) Exchange(ctx context.Context, addr string, state request.Request
 	if d.Options.ForceTCP {
 		proto = "tcp"
 	}
-	co, err := net.DialTimeout(proto, addr, d.Timeout)
+
+	var dialer net.Dialer
+	if proto == "tcp" {
+		dialer = net.Dialer{Timeout: d.Timeout, LocalAddr: &net.TCPAddr{IP: d.LocalAddr}}
+	} else if proto == "udp" {
+		dialer = net.Dialer{Timeout: d.Timeout, LocalAddr: &net.UDPAddr{IP: d.LocalAddr}}
+	} else {
+		return nil, fmt.Errorf("expected tcp or udp, received unsupported proto '%s'", proto)
+	}
+
+	co, err := dialer.Dial(proto, addr)
 	if err != nil {
 		return nil, err
 	}
